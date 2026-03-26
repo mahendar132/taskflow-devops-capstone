@@ -1,4 +1,17 @@
-# taskflow-devops-capstone
+# TaskFlow DevOps Capstone# project.
 
-This App is just a small sample app.
-The goal of the project is to learn all DevOps tools working together.
+## Tech Stack
+- Frontend: React + Vite
+- Backend: FastAPI
+- Database: PostgreSQL
+
+## Current Status
+- [x] App development
+- [ ] Dockerization
+- [ ] CI with GitHub Actions
+- [ ] Docker Hub push
+- [ ] Terraform for AWS
+- [ ] Kubernetes on EKS
+- [ ] Argo CD GitOps
+- [ ] Prometheus monitoring
+
