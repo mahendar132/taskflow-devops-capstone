@@ -22,47 +22,84 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      # -----------------------
+      # ✅ BUILD BACKEND IMAGE
+      # -----------------------
+
       - name: 🏗️ Build Backend Image
         run: |
           docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/taskflow-backend \
           -f Dockerfile.backend .
 
+      # -----------------------
+      # ✅ CREATE DOCKER NETWORK
+      # -----------------------
+
+      - name: 🌐 Create Smoke Test Network
+        run: |
+          docker network create smoke-network
+
+      # -----------------------
+      # ✅ START POSTGRES
+      # -----------------------
+
       - name: 🐘 Run Postgres for Smoke Test
         run: |
           docker run -d \
             --name smoke-postgres \
+            --network smoke-network \
             -e POSTGRES_DB=taskflow \
             -e POSTGRES_USER=postgres \
             -e POSTGRES_PASSWORD=postgres \
-            -p 5432:5432 \
             postgres:16-alpine
 
           sleep 5
+
+      # -----------------------
+      # ✅ START BACKEND
+      # -----------------------
 
       - name: 🚬 Smoke Run Backend Container
         run: |
           docker run -d \
             --name smoke-backend \
-            -e DATABASE_URL=postgresql+psycopg2://postgres:postgres@host.docker.internal:5432/taskflow \
+            --network smoke-network \
+            -e DATABASE_URL=postgresql+psycopg2://postgres:postgres@smoke-postgres:5432/taskflow \
             -p 8000:8000 \
             ${{ secrets.DOCKERHUB_USERNAME }}/taskflow-backend
 
-          sleep 8
+          sleep 10
 
-      - name: 🌐 Check Backend Health
+      # -----------------------
+      # ✅ HEALTH CHECK
+      # -----------------------
+
+      - name: ❤️ Check Backend Health
         run: |
           curl --fail http://localhost:8000/health
 
-      - name: 🧹 Stop Container
-        run:  |
+      # -----------------------
+      # ✅ CLEANUP
+      # -----------------------
+
+      - name: 🧹 Cleanup Smoke Containers
+        run: |
           docker rm -f smoke-backend
           docker rm -f smoke-postgres
+          docker network rm smoke-network
 
+      # -----------------------
+      # ✅ BUILD FRONTEND
+      # -----------------------
 
       - name: 🏗️ Build Frontend Image
         run: |
           docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/taskflow-frontend \
           -f Dockerfile.frontend .
+
+      # -----------------------
+      # ✅ PUSH IMAGES
+      # -----------------------
 
       - name: 🚀 Push Backend Image
         run: |
