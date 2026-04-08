@@ -19,7 +19,7 @@ services:
   backend:
     build:
       context: ..
-      dockerfile: Dockerfilebackend
+      dockerfile: Dockerfile.backend
     container_name: taskflow-backend
     environment:
       DATABASE_URL: postgresql+psycopg2://postgres:postgres@postgres:5432/taskflow
